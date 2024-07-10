@@ -1,5 +1,45 @@
+/*
+ToDo (in no particular order):
+1)  Implement a command line parser for the variables (which will be renamed) a,b,e, L_0, Tend, Delt
+2)  Design the structure of the Gas phase problem
+    a)  Should have a Rhs/Jac function (the equivalent of a virtual function)
+    b)  Should have a solver (will start with RK4 and implement more)
+    c)  Should have visualization (see the Crate "plotters")
+3)  Refactor to allow for more complex chemical mechanisms (maybe a yaml plugin?)
+*/
+
+struct KapProb{
+    active : bool,
+    state  : Vec<f32>
+}
+impl KapProb{
+    fn rhs(&self){
+        println!("This is the rhs function");
+    }
+    fn jac(&self){
+        println!("This is the jac function");
+    }
+    fn solve(&self){
+        println!("This is the attempt to solve the problem");
+    }
+    fn printState(&self){
+        println!("The vector is {:?}", &self.state);
+    }
+    fn step(&self){
+        println!("This impl will perform a step");
+    }
+}
+
+
 fn main() {
     println!("Hello, world!");
+    let test_problem = KapProb{ active : true, state : vec![1.0,0.0,0.0]};
+    test_problem.rhs();
+    test_problem.jac();
+    test_problem.solve();
+    test_problem.printState();
+
+
 }
 /* 
 function [y,TIME]=KapilaSimple(a,b,e,l_0,Tend,Delt)
