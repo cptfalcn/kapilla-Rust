@@ -8,37 +8,56 @@ ToDo (in no particular order):
 3)  Refactor to allow for more complex chemical mechanisms (maybe a yaml plugin?)
 */
 
+
+//Everyone should have an some time integration capabilities
+//All the pertinent functions should be supplied by the impl of the structure
+//rhs:  The right-hand-side forcing term function f(vec)=vec
+//jac:  the Jacobian of the rhs function
+//
+pub trait Integrate{ 
+    fn time_integration(& mut self)->Vec<f32>;
+}
+
+pub trait RightHandSide{
+    fn rhs(& self)->Vec<f32>;
+}
+
+pub trait JacobianMatrix{
+    fn jac(&self) -> Vec<f32>;
+}
+
+
+
+
+
 struct KapProb{
-    active : bool,
     state  : Vec<f32>
 }
-impl KapProb{
-    fn rhs(&self){
-        println!("This is the rhs function");
-    }
-    fn jac(&self){
-        println!("This is the jac function");
-    }
-    fn solve(&self){
-        println!("This is the attempt to solve the problem");
-    }
-    fn printState(&self){
-        println!("The vector is {:?}", &self.state);
-    }
-    fn step(&self){
-        println!("This impl will perform a step");
+
+impl Integrate for KapProb{
+    fn time_integration(& mut self)->Vec<f32>{
+    println!("This is a simple test {:?}", &self.state);
+    println!("Internally, the state is {:?}", &self.state);
+    self.state = vec! [1.0, 1.0, 1.0];
+    println!("The internal vector is {:?}", &self.state);
+    return self.state.clone();
     }
 }
+
+impl KapProb{
+    fn print_state(&self){
+        println!("The vector is {:?}", &self.state);
+    }
+}
+
 
 
 fn main() {
-    println!("Hello, world!");
-    let test_problem = KapProb{ active : true, state : vec![1.0,0.0,0.0]};
-    test_problem.rhs();
-    test_problem.jac();
-    test_problem.solve();
-    test_problem.printState();
+    println!("Hello, Testing ground!");
 
+    let mut test_problem = KapProb{ state : vec![1.0,0.0,0.0]};
+    test_problem.time_integration();
+    test_problem.print_state();
 
 }
 /* 
