@@ -26,12 +26,17 @@ pub trait JacobianMatrix{
     fn jac(&self) -> Vec<f32>;
 }
 
-
-
-
-
 struct KapProb{
-    state  : Vec<f32>
+    state       : Vec<f32>,
+    end_time    : f32,
+    start_time  : f32,
+    curr_time   : f32,
+    delta_t     : f32
+}
+impl RightHandSide for KapProb{
+    fn rhs(& self) -> Vec<f32>{
+        return 2*self.state;
+    }
 }
 
 impl Integrate for KapProb{
@@ -39,6 +44,7 @@ impl Integrate for KapProb{
     println!("This is a simple test {:?}", &self.state);
     println!("Internally, the state is {:?}", &self.state);
     self.state = vec! [1.0, 1.0, 1.0];
+    self.state = self.state + self.rhs(self.state);
     println!("The internal vector is {:?}", &self.state);
     return self.state.clone();
     }
@@ -55,7 +61,8 @@ impl KapProb{
 fn main() {
     println!("Hello, Testing ground!");
 
-    let mut test_problem = KapProb{ state : vec![1.0,0.0,0.0]};
+    let mut test_problem = KapProb{ state : vec![1.0,0.0,0.0], end_time : 1.0, 
+                                    start_time : 0.0, curr_time : 0.0, delta_t : 0.1 };
     test_problem.time_integration();
     test_problem.print_state();
 
