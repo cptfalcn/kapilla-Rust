@@ -14,9 +14,23 @@ ToDo (in no particular order):
 //rhs:  The right-hand-side forcing term function f(vec)=vec
 //jac:  the Jacobian of the rhs function
 //
-pub trait Integrate{ 
-    fn time_integration(& mut self)->Vec<f32>;
+pub fn elementwise_addition(vec_a: Vec<f32>, vec_b: Vec<f32>) -> Vec<f32> {
+    vec_a.into_iter().zip(vec_b).map(|(a, b)| a + b).collect()
 }
+
+pub fn elementwise_scale(mut vec_a: Vec<f32>, scale: f32) -> Vec<f32> {
+    for i in vec_a.iter_mut(){
+        *i *= scale;
+    }
+    return vec_a;
+}
+
+pub trait integrator_step{
+    fn step(&self) -> Vec<f32>;
+}
+
+
+        
 
 pub trait RightHandSide{
     fn rhs(& self)->Vec<f32>;
@@ -33,24 +47,54 @@ struct KapProb{
     curr_time   : f32,
     delta_t     : f32
 }
+
+
+fn rhs_test(Input: Vec<f32>)->Vec<f32>
+{
+    return Input;
+}
+
 impl RightHandSide for KapProb{
-    fn rhs(& self) -> Vec<f32>{
-        return 2*self.state;
+    fn rhs(&self)-> Vec<f32>{
+        return self.state.clone();
     }
 }
 
+pub trait Integrate{ 
+    fn time_integration(& mut self)->Vec<f32>;
+}
+
 impl Integrate for KapProb{
+
     fn time_integration(& mut self)->Vec<f32>{
-    println!("This is a simple test {:?}", &self.state);
-    println!("Internally, the state is {:?}", &self.state);
-    self.state = vec! [1.0, 1.0, 1.0];
-    self.state = self.state + self.rhs(self.state);
-    println!("The internal vector is {:?}", &self.state);
+    println!("Starting the time integration procees, the state is {:?}", &self.state);
+    //Set a loop
+    let step_max = (self.end_time/self.delta_t) as i32;
+    println!("Performing {:?} time interation steps", &step_max);
+    let mut step_ct = 0;
+    while step_ct < step_max {
+        let rk2_step = self.step();
+        //println!("The step is {:?}", &rk2_step);
+        self.state=rk2_step;
+        step_ct += 1;
+        
+
+    }
     return self.state.clone();
     }
 }
 
+impl integrator_step for KapProb{
+    fn step(& self) -> Vec<f32>{
+        let result  = elementwise_addition(self.state.clone(), 
+                    elementwise_scale(  self.state.clone() , self.delta_t) 
+                );
+        return result;
+    }
+}
+
 impl KapProb{
+
     fn print_state(&self){
         println!("The vector is {:?}", &self.state);
     }
@@ -62,9 +106,10 @@ fn main() {
     println!("Hello, Testing ground!");
 
     let mut test_problem = KapProb{ state : vec![1.0,0.0,0.0], end_time : 1.0, 
-                                    start_time : 0.0, curr_time : 0.0, delta_t : 0.1 };
-    test_problem.time_integration();
+                                    start_time : 0.0, curr_time : 0.0, delta_t : 0.01 };
+    test_problem.state=test_problem.time_integration();
     test_problem.print_state();
+    
 
 }
 /* 
