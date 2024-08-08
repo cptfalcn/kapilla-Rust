@@ -64,11 +64,20 @@ pub trait JacobianMatrix{
 //==================================================================
 struct KapProb{
     state       : Vec<f32>,
-    end_time    : f32,
-    start_time  : f32,
+    end_time    : f32,  //Final integration time.
+    start_time  : f32,  //The time we are starting at.
     curr_time   : f32,  //This is the "t" variable 
-    delta_t     : f32
+    delta_t     : f32   //The time step size
 }
+
+//An implementation to print the state.
+impl KapProb{
+
+    fn print_state(&self){
+        println!("The vector is {:?}", &self.state);
+    }
+}
+
 
 impl RightHandSide for KapProb{
     fn rhs(&self, time: f32, state : Vec<f32>)-> Vec<f32>{
@@ -151,13 +160,6 @@ impl RK4Step for KapProb{
     
 }
 
-//An implementation to print the state.
-impl KapProb{
-
-    fn print_state(&self){
-        println!("The vector is {:?}", &self.state);
-    }
-}
 
 
 /*=================
