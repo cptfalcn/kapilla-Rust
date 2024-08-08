@@ -45,7 +45,7 @@ A Right hand side function should be implemented
 It should return the result as a vector.
 =================================================*/
 pub trait RightHandSide{
-    fn rhs(& self)->Vec<f32>;
+    fn rhs(& self, time : f32, state: Vec<f32>)->Vec<f32>;
 }
 
 /*==============================================
@@ -55,6 +55,10 @@ pub trait JacobianMatrix{
     fn jac(&self) -> Vec<f32>;
 }
 
+
+
+
+
 //==================================================================
 //The Kapila Reaction kinetics problem structure and implementations
 //==================================================================
@@ -62,12 +66,12 @@ struct KapProb{
     state       : Vec<f32>,
     end_time    : f32,
     start_time  : f32,
-    curr_time   : f32,
+    curr_time   : f32,  //This is the "t" variable 
     delta_t     : f32
 }
 
 impl RightHandSide for KapProb{
-    fn rhs(&self)-> Vec<f32>{
+    fn rhs(&self, time: f32, state : Vec<f32>)-> Vec<f32>{
         return elementwise_scale(self.state.clone(),2.0);
     }
 }
@@ -79,6 +83,10 @@ pub trait Integrate{
 //Make it so various stepping methods can be implemented
 pub trait RK2Step{
     fn rk2_step(& self)->Vec<f32>;
+}
+
+pub trait RK4Step{
+    fn rk4_step(& self)->Vec<f32>;
 }
 
 
@@ -102,7 +110,7 @@ impl Integrate for KapProb{
     println!("Starting the time integration procees, the state is {:?}", &self.state);
     let mut step_ct = 0;
     while step_ct < step_max {
-        self.state = self.rk2_step();
+        self.state = self.rk4_step();
         step_ct += 1;
         self.curr_time+=self.delta_t;
     }
@@ -115,8 +123,32 @@ impl Integrate for KapProb{
 impl RK2Step for KapProb{
     fn rk2_step(& self) -> Vec<f32>{
         return elementwise_addition(self.state.clone(), 
-        elementwise_scale(  self.rhs() , self.delta_t) );
+        elementwise_scale(  self.rhs(self.curr_time.clone(), self.state.clone()) , self.delta_t) );
     }
+}
+
+//RK4
+
+impl RK4Step for KapProb{
+    fn rk4_step(& self) -> Vec<f32>{
+        let k1 =    self.rhs(self.curr_time.clone(), self.state.clone());
+        
+        let y2 =    elementwise_addition(self.state.clone(), elementwise_scale(k1.clone(), self.delta_t/2.0));
+        let k2 =    self.rhs(self.curr_time.clone()+ self.delta_t/2.0, y2);
+        
+        let y3 =    elementwise_addition(self.state.clone(), elementwise_scale(k2.clone(), self.delta_t/2.0));
+        let k3 =    self.rhs(self.curr_time.clone() + self.delta_t/2.0, y3);
+
+        let y4 =    elementwise_addition(self.state.clone(), elementwise_scale(k3.clone(), self.delta_t));
+        let k4 =    self.rhs(self.curr_time.clone() + self.delta_t, y4);
+
+        let k1k2 =  elementwise_addition(k1.clone(), elementwise_scale(k2.clone(),2.0) );
+        let k3k4 =  elementwise_addition(k4.clone(), elementwise_scale(k3.clone(),2.0) );
+        let ks   =  elementwise_addition(k1k2.clone(), k3k4.clone()); 
+        let ans  =  elementwise_addition(self.state.clone(), elementwise_scale(ks, self.delta_t/6.0));
+        return ans;
+    }
+    
 }
 
 //An implementation to print the state.
@@ -136,7 +168,7 @@ fn main() {
     println!("Hello, Testing ground!");
 
     let mut test_problem = KapProb{ state : vec![1.0,2.0,3.0], end_time : 1.0, 
-                                    start_time : 0.0, curr_time : 0.0, delta_t : 0.01 };
+                                    start_time : 0.0, curr_time : 0.0, delta_t : 0.1 };
     test_problem.time_integration();
     test_problem.print_state();
     
