@@ -81,7 +81,28 @@ impl KapProb{
 
 impl RightHandSide for KapProb{
     fn rhs(&self, time: f32, state : Vec<f32>)-> Vec<f32>{
-        return elementwise_scale(self.state.clone(),2.0);
+        
+        let e : f32 = 0.01;
+        let exp: f32 = core::f32::consts::E; 
+        println!("E is : {:?}", exp);
+        let L : f32  = 0.5*f32::powf(exp, 1.0/0.1);
+        println!("power is {:?}", f32::powf(exp, 1.0/(0.1)));
+        println!("L is : {:?}", L);
+        let omega : f32 = L* self.state[1]*self.state[2]*f32::powf(exp, -1.0/(e*self.state[0]) ) ;
+        let yd1 : f32 = self.state[2];
+        let yd2 : f32 = -omega;
+        let yd3 : f32 = -1.0*self.state[0]-self.state[1];
+        return vec![yd1, yd2, yd3];
+        //return elementwise_scale(self.state.clone(),2.0);
+      
+        //function yd=rhs(t,y,e,L
+        /*yd=zeros(size(y)-1);
+
+        omega=L*y(2).*y(3).*exp(-1./(e*y(1)));
+        yd(1)=y(3);
+        yd(2)=-omega;
+        yd(3)=-yd(2)-yd(1);
+        */
     }
 }
 
@@ -169,8 +190,8 @@ Main
 fn main() {
     println!("Hello, Testing ground!");
 
-    let mut test_problem = KapProb{ state : vec![1.0,2.0,3.0], end_time : 1.0, 
-                                    start_time : 0.0, curr_time : 0.0, delta_t : 0.1 };
+    let mut test_problem = KapProb{ state : vec![1.0,0.95,0.05], end_time : 1.0, 
+                                    start_time : 0.0, curr_time : 0.0, delta_t : 0.001 };
     test_problem.time_integration();
     test_problem.print_state();
     
