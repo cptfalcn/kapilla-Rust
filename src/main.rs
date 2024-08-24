@@ -18,6 +18,8 @@ ToDo (in no particular order):
 /*
 These public functions will be used to help perform the basic vector operations needed by the stepper
 */
+
+use std::io::Write;
 pub fn elementwise_addition(vec_a: Vec<f64>, vec_b: Vec<f64>) -> Vec<f64> {
     vec_a.into_iter().zip(vec_b).map(|(a, b)| a + b).collect()
 }
@@ -144,15 +146,29 @@ impl Integrate for KapProb{
     println!("The ending time is: {:?}", self.end_time);
     println!("Starting the time integration procees, the state is {:?}", &self.state);
     let mut step_ct = 0;
+    let mut progress_percent = 0.0;
+    let mut progress_dots = 0 as i32;
+    print!("[");
+    //Main integration loop
     while step_ct < step_max {
         self.state = self.rk4_step();
         step_ct += 1;
         self.curr_time+=self.delta_t;
+        progress_percent = (self.curr_time-self.start_time)/(self.end_time-self.start_time)*100.0;
+        //println!("{:?}", progress_percent);
+        while (progress_dots<(progress_percent) as i32){
+            print!(":");
+            let _ = std::io::stdout().flush();//Flush the input buffer
+            progress_dots +=1;
+        }
+
     }
+    println!("]");
     println!("At the end of the simulation we are at time {:?}", self.curr_time);
     return self.state.clone();
     }
 }
+
 
 //Here are various step options, which can be called by the IntegratorStep
 impl RK2Step for KapProb{
