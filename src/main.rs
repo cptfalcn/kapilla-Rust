@@ -83,28 +83,19 @@ impl KapProb{
 
 impl RightHandSide for KapProb{
     fn rhs(&self, time: f64, state : Vec<f64>)-> Vec<f64>{
-        
-        let e : f64 = 0.01;
-        let exp: f64 = core::f64::consts::E; 
-        //println!("E is : {:?}", exp);
+        //Needs to allow for an input, this is currently hard coded
+        let e : f64     = 0.01;
+        let exp: f64    = core::f64::consts::E; 
         //L=l_0*exp(1/e);
         let L : f64  = 0.5*f64::powf(exp, 1.0/e);
-        //println!("power is {:?}", f64::powf(exp, -1.0/e));
-        //println!("L is : {:?}", L);
-        let omega : f64 = L* self.state[1]*self.state[2]*f64::powf(exp, -1.0/(e*self.state[0]) ) ;
-        //println!("Omega is {:?}", omega);
-        let yd1 : f64 = self.state[2];
-        let yd2 : f64 = -1.0*omega;
-        //println!("yd1 is : {:?}", yd1);
-        //println!("yd2 is : {:?}", yd2);
-
-        let yd3 : f64 = omega-yd1;
+        let omega : f64 =   L* self.state[1]*self.state[2]
+                            *f64::powf(exp, -1.0/(e*self.state[0]) ) ;
+         let yd1 : f64  = self.state[2];
+        let yd2 : f64   = -1.0*omega;
+        let yd3 : f64   = omega-yd1;
         return vec![yd1, yd2, yd3];
-        //return elementwise_scale(self.state.clone(),2.0);
-      
-        //function yd=rhs(t,y,e,L
-        /*yd=zeros(size(y)-1);
-
+        //function yd=rhs(t,y,e,L)
+        /*
         omega=L*y(2).*y(3).*exp(-1./(e*y(1)));
         yd(1)=y(3);
         yd(2)=-omega;
@@ -140,31 +131,31 @@ impl Integrate for KapProb{
 
     fn time_integration(& mut self)->Vec<f64>{
     //Set a loop
-    let step_max = ((self.end_time- self.start_time)/self.delta_t) as i32;
+    let run_time : f64 = self.end_time- self.start_time;
+    let step_max : i64 = (run_time/self.delta_t) as i64;
+    let mut step_ct : i64 = 0;
+    let mut progress_percent : f64 = 0.0;
+    let mut progress_dots : i32 = 0;
     println!("Performing {:?} time interation steps", &step_max);
     println!("The starting time is: {:?}", self.start_time);
     println!("The ending time is: {:?}", self.end_time);
-    println!("Starting the time integration procees, the state is {:?}", &self.state);
-    let mut step_ct = 0;
-    let mut progress_percent = 0.0;
-    let mut progress_dots = 0 as i32;
     print!("[");
     //Main integration loop
     while step_ct < step_max {
+        //MAGIC happens below.
         self.state = self.rk4_step();
         step_ct += 1;
         self.curr_time+=self.delta_t;
-        progress_percent = (self.curr_time-self.start_time)/(self.end_time-self.start_time)*100.0;
-        //println!("{:?}", progress_percent);
-        while (progress_dots<(progress_percent) as i32){
+        //Track simulation progress
+        progress_percent = (self.curr_time-self.start_time)/(run_time)*100.0;
+        while progress_dots<(progress_percent) as i32{
             print!(":");
             let _ = std::io::stdout().flush();//Flush the input buffer
             progress_dots +=1;
         }
-
     }
     println!("]");
-    println!("At the end of the simulation we are at time {:?}", self.curr_time);
+    println!("Simulation end time {:?}", self.curr_time);
     return self.state.clone();
     }
 }
@@ -209,14 +200,12 @@ Main
 =================*/
 
 fn main() {
-    println!("Hello, Testing ground!");
 
+    //Set the object
     let mut test_problem = KapProb{ state : vec![1.0,0.995,0.005], end_time : 10.0, 
                                     start_time : 0.0, curr_time : 0.0, delta_t : 0.00001 };
     test_problem.time_integration();
     test_problem.print_state();
-    
-
 }
 /* 
 function [y,TIME]=KapilaSimple(a,b,e,l_0,Tend,Delt)
