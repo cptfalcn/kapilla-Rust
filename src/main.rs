@@ -69,7 +69,8 @@ struct KapProb{
     end_time    : f64,  //Final integration time.
     start_time  : f64,  //The time we are starting at.
     curr_time   : f64,  //This is the "t" variable 
-    delta_t     : f64   //The time step size
+    delta_t     : f64,   //The time step size
+    int_code    : String //Name of the integration method
 }
 
 //An implementation to print the state.
@@ -142,8 +143,15 @@ impl Integrate for KapProb{
     print!("[");
     //Main integration loop
     while step_ct < step_max {
-        //MAGIC happens below.
-        self.state = self.rk4_step();
+        //MAGIC happens below.  Check if we have a valid integrator code
+        if self.int_code.as_str()=="RK4"{
+            self.state=self.rk4_step();
+        } else if self.int_code.as_str()=="RK2" {
+            self.state=self.rk2_step();
+        } else {
+            print!("invalid integrator code");
+            break;
+        }
         step_ct += 1;
         self.curr_time+=self.delta_t;
         //Track simulation progress
@@ -203,7 +211,8 @@ fn main() {
 
     //Set the object
     let mut test_problem = KapProb{ state : vec![1.0,0.995,0.005], end_time : 10.0, 
-                                    start_time : 0.0, curr_time : 0.0, delta_t : 0.00001 };
+                                    start_time : 0.0, curr_time : 0.0, delta_t : 0.00001, 
+                                    int_code :String::from("RK4") };
     test_problem.time_integration();
     test_problem.print_state();
 }
