@@ -18,7 +18,7 @@ ToDo (in no particular order):
 /*
 These public functions will be used to help perform the basic vector operations needed by the stepper
 */
-
+use clap::Parser;
 use std::io::Write;
 pub fn elementwise_addition(vec_a: Vec<f64>, vec_b: Vec<f64>) -> Vec<f64> {
     vec_a.into_iter().zip(vec_b).map(|(a, b)| a + b).collect()
@@ -200,7 +200,14 @@ impl RK4Step for KapProb{
     }
     
 }
-
+/// Search for a pattern in a file and display the lines that contain it.
+#[derive(Parser)]
+struct Args {
+    /// The name of the method used
+    name : String,
+    /// The stepsize used
+    step : f64,
+}
 
 
 /*=================
@@ -208,11 +215,13 @@ Main
 =================*/
 
 fn main() {
+    let args = Args ::parse();
 
+    println!("method: {:?}, timestep: {:?}", args.name, args.step);
     //Set the object
     let mut test_problem = KapProb{ state : vec![1.0,0.995,0.005], end_time : 10.0, 
-                                    start_time : 0.0, curr_time : 0.0, delta_t : 0.00001, 
-                                    int_code :String::from("RK4") };
+                                    start_time : 0.0, curr_time : 0.0, delta_t : f64::from(args.step), 
+                                    int_code :String::from(args.name) };
     test_problem.time_integration();
     test_problem.print_state();
 }
