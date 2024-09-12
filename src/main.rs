@@ -204,23 +204,31 @@ impl RK4Step for KapProb{
 #[derive(Parser)]
 struct Args {
     /// The name of the method used
-    name : String,
+    name    : String,
     /// The stepsize used
-    step : f64,
+    step    : f64,
+    /// Simulation end time used
+    end     : f64,
+    ///  Simulation start time used
+    start   : f64,
 }
 
 
 /*=================
 Main
 =================*/
-
+//Standard built arguments
+//cargo run "RK4" 1e-5 10 0 
 fn main() {
     let args = Args ::parse();
 
     println!("method: {:?}, timestep: {:?}", args.name, args.step);
     //Set the object
-    let mut test_problem = KapProb{ state : vec![1.0,0.995,0.005], end_time : 10.0, 
-                                    start_time : 0.0, curr_time : 0.0, delta_t : f64::from(args.step), 
+    let mut test_problem = KapProb{ state : vec![1.0,0.995,0.005], 
+                                    end_time :  f64::from(args.end),//10.0, 
+                                    start_time : f64::from(args.start),//0.0, 
+                                    curr_time : 0.0, 
+                                    delta_t : f64::from(args.step), 
                                     int_code :String::from(args.name) };
     test_problem.time_integration();
     test_problem.print_state();
